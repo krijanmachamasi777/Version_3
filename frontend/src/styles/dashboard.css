@@ -1,0 +1,99 @@
+/* ── DASHBOARD TAB ────────────────────────────────────────
+   Stat cards, emoji card, chart boxes
+   ──────────────────────────────────────────────────────── */
+
+.dashboard { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── Stat grid ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  background: var(--s1);
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.stat-card:hover {
+  border-color: var(--glow);
+  transform: translateY(-2px);
+}
+
+.stat-card__label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stat-card__value {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--fg);
+  font-family: var(--mono);
+  margin: 2px 0;
+}
+
+.stat-card__sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ── Emoji / mood card ── */
+.emoji-card {
+  background: var(--s1);
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.emoji-card:hover {
+  border-color: var(--glow);
+  transform: translateY(-2px);
+}
+
+.emoji-card__icon  { font-size: 28px; line-height: 1; }
+.emoji-card__label { font-size: 16px; font-weight: 800; margin-top: 4px; }
+.emoji-card__sub   { font-size: 11px; color: var(--muted); }
+
+/* ── Chart box ── */
+.chart-box {
+  background: var(--s1);
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.chart-box__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 2px;
+}
+
+.chart-box__sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+/* ── Value colours (shared token) ── */
+.v--profit { color: var(--g); }
+.v--loss   { color: var(--r); }
+.v--blue   { color: var(--acc); }
+.v--purple { color: #bf5af2; }
