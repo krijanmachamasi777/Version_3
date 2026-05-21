@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FG } from "./FG";
-import { todayStr } from "../utils/helpers";
+import { SECTORS, todayStr } from "../utils/helpers";
 import "../styles/modals.css";
 
 // ── INVEST FORM MODAL ─────────────────────────────────────
@@ -12,7 +12,7 @@ import "../styles/modals.css";
 
 export function InvestFormModal({ mode, init = {}, onSave, onClose }) {
   const blank = {
-    scrip: "", qty: "", buyRate: "", soldRate: "",
+    scrip: "", sector: "", qty: "", buyRate: "", soldRate: "",
     buyAmt: "", soldAmt: "", boughtDate: todayStr(),
     soldDate: "", remarks: "",
   };
@@ -64,6 +64,14 @@ export function InvestFormModal({ mode, init = {}, onSave, onClose }) {
             <input className="f-input" value={f.scrip}
               onChange={e => upd("scrip", e.target.value.toUpperCase())}
               placeholder="e.g. NABIL" />
+          </FG>
+          <FG label="Sector">
+            <input className="f-input" list="sec-list" value={f.sector}
+              onChange={e => upd("sector", e.target.value)}
+              placeholder="Select or type…" />
+            <datalist id="sec-list">
+              {SECTORS.map(s => <option key={s} value={s} />)}
+            </datalist>
           </FG>
           <FG label="Quantity">
             <input className="f-input" type="number" value={f.qty}

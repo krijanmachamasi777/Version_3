@@ -178,6 +178,26 @@
 .pl-footer__label--loss   { color: var(--r); }
 
 .pl-footer__sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+.pl-footer__sub--metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.pl-footer__metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.pl-footer__metric strong {
+  font-weight: 700;
+  color: inherit;
+}
+.pl-footer__metric--percent {
+  color: var(--acc);
+}
 
 /* ── Investment P&L block (InvDetailModal) ── */
 .inv-pl-block {
