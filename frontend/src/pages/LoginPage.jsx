@@ -12,17 +12,19 @@ import "../styles/login.css";
 export function LoginPage() {
   const { login, loading, error } = useAuth();
 
-  const [clientId, setClientId] = useState("");
+  const [dpCode,   setDpCode]   = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
 
-  const canSubmit = clientId && username && password && !loading;
+  const canSubmit = dpCode && username && password && !loading;
 
   const handleSubmit = async e => {
     e?.preventDefault?.();
     if (!canSubmit) return;
-    await login({ clientId, username, password });
+    await login({ dpCode, username, password });
+    // On success, isLoggedIn becomes true in AuthContext,
+    // and App.jsx will automatically unmount LoginPage and render the main app.
   };
 
   const handleKeyDown = e => {
@@ -63,25 +65,25 @@ export function LoginPage() {
           )}
 
           <div className="lp-fields" onKeyDown={handleKeyDown}>
-            {/* Client ID */}
+            {/* DP Code */}
             <div className="lp-field">
-              <label className="lp-field__label" htmlFor="clientId">
-                DP / Client ID
+              <label className="lp-field__label" htmlFor="dpCode">
+                DP Code
               </label>
               <div className="lp-field__input-wrap">
                 <span className="lp-field__icon">🏦</span>
                 <input
-                  id="clientId"
-                  type="number"
+                  id="dpCode"
+                  type="text"
                   className="lp-field__input"
-                  placeholder="e.g. 156"
-                  value={clientId}
-                  onChange={e => setClientId(e.target.value)}
+                  placeholder="e.g. 15600"
+                  value={dpCode}
+                  onChange={e => setDpCode(e.target.value)}
                   disabled={loading}
                   autoComplete="off"
                 />
               </div>
-              <span className="lp-field__hint">Your DP (Depository Participant) number</span>
+              <span className="lp-field__hint">Your 5-digit DP (Depository Participant) code</span>
             </div>
 
             {/* Username */}
@@ -161,10 +163,9 @@ export function LoginPage() {
           </div>
         </div>
 
-        {/* Footer note */}
         <p className="lp-footer">
-          Journal &amp; Investment tabs work without login.
-          MeroShare tabs require your CDSC credentials.
+          Sign in with your CDSC credentials to access your investment dashboard,
+          journal, and live MeroShare data.
         </p>
       </div>
     </div>

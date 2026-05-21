@@ -9,7 +9,7 @@ import { apiFetch } from "./client";
 
 /**
  * Authenticate against MeroShare via our backend.
- * @param {{ clientId: number, username: string, password: string }} creds
+ * @param {{ dpCode: string, username: string, password: string }} creds
  * @returns {{ token: string, user: object }}
  */
 export function loginApi(creds) {

@@ -22,12 +22,12 @@ export function AuthProvider({ children }) {
   const [error,   setError]   = useState(null);
 
   // ── login ─────────────────────────────────────────────────
-  const login = useCallback(async ({ clientId, username, password }) => {
+  const login = useCallback(async ({ dpCode, username, password }) => {
     setLoading(true);
     setError(null);
     try {
       // Returns { token, user }  (backend authController.login)
-      const data = await loginApi({ clientId: Number(clientId), username, password });
+      const data = await loginApi({ dpCode: String(dpCode), username, password });
       sessionStorage.setItem(TOKEN_KEY, data.token);
       setToken(data.token);
       setUser(data.user);
@@ -92,4 +92,5 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

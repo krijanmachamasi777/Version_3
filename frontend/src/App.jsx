@@ -38,8 +38,6 @@ export default function App() {
   const [trades,      setTrades]      = useState(() => loadFromStorage("trades",      INIT_TRADES));
   const [investments, setInvestments] = useState(() => loadFromStorage("investments", INIT_INV));
   const [watchlist,   setWatchlist]   = useState(() => loadFromStorage("watchlist",   INIT_WATCH));
-  const [showLogin,   setShowLogin]   = useState(false);
-  const [pendingTab,  setPendingTab]  = useState(null);
   const [tradeDetail, setTradeDetail] = useState(null);
   const [tradeForm,   setTradeForm]   = useState(null);
   const [invDetail,   setInvDetail]   = useState(null);
@@ -50,9 +48,6 @@ export default function App() {
   useMemo(() => { saveToStorage("investments", investments); }, [investments]);
   useMemo(() => { saveToStorage("watchlist",   watchlist);   }, [watchlist]);
 
-  useEffect(() => {
-    if (isLoggedIn && pendingTab) { setTab(pendingTab); setPendingTab(null); setShowLogin(false); }
-  }, [isLoggedIn, pendingTab]);
 
   const addTrade = d => setTrades(p => { const reuseTsn = findRecentTSN(p, d.scrip, d.boughtDate, 15); return [...p, { ...d, id: uid(), tsn: reuseTsn || nextTSN(p) }]; });
   const updTrade = (id, d) => setTrades(p => p.map(t => t.id === id ? { ...t, ...d, tsn: t.tsn } : t));
@@ -64,11 +59,7 @@ export default function App() {
   const updWatch = (id, d) => setWatchlist(p => p.map(w => w.id === id ? { ...w, ...d } : w));
   const delWatch = id => setWatchlist(p => p.filter(w => w.id !== id));
 
-  const handleTabClick = id => {
-    const t = TABS.find(t => t.id === id);
-    if (t?.ms && !isLoggedIn) { setPendingTab(id); setShowLogin(true); return; }
-    setShowLogin(false); setTab(id);
-  };
+  const handleTabClick = id => { setTab(id); };
   const handleFAB = () => {
     if (tab === "journal" || tab === "losing") setTradeForm({ mode: "add", data: {} });
     else if (tab === "investment") setInvForm({ mode: "add", data: {} });
@@ -78,7 +69,7 @@ export default function App() {
   const isMsTab = tab.startsWith("ms-");
   const showFAB = !isMsTab && tab !== "dashboard" && tab !== "losing";
 
-  if (showLogin && !isLoggedIn) return <LoginPage />;
+  if (!isLoggedIn) return <LoginPage />;
 
   return (
     <>
@@ -107,11 +98,10 @@ export default function App() {
       <nav className="tabbar">
         {TABS.map(t => (
           <button key={t.id}
-            className={`tab-btn${tab === t.id ? " tab-btn--active" : ""}${t.ms && !isLoggedIn ? " tab-btn--ms" : ""}`}
+            className={`tab-btn${tab === t.id ? " tab-btn--active" : ""}`}
             onClick={() => handleTabClick(t.id)}
           >
             {t.label}
-            {t.ms && !isLoggedIn && <span className="tab-lock">🔒</span>}
           </button>
         ))}
       </nav>
