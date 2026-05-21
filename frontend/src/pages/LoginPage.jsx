@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { useAuth }  from "../context/AuthContext";
-import "../styles/login.css";
+import "./LoginPage.css";
 
 export function LoginPage() {
   const { login, loading, error } = useAuth();
