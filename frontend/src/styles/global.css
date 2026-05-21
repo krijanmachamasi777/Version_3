@@ -87,6 +87,8 @@ body {
   border-bottom: 1px solid var(--b);
   overflow-x: auto;
   scrollbar-width: none;
+  justify-content: space-evenly;
+  align-items: center;
 }
 .tabbar::-webkit-scrollbar { display: none; }
 

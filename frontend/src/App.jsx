@@ -25,9 +25,9 @@ const TABS = [
   { id: "investment",   label: "💼 Investment" },
   { id: "watchlist",    label: "👁 Watchlist" },
   { id: "losing",       label: "📉 Losing" },
-  { id: "ms-portfolio", label: "🏦 MS Portfolio", ms: true },
-  { id: "ms-ipos",      label: "📋 Open IPOs",    ms: true },
-  { id: "ms-wacc",      label: "⚖ WACC",          ms: true },
+  // { id: "ms-portfolio", label: "🏦 MS Portfolio", ms: true },
+  // { id: "ms-ipos",      label: "📋 Open IPOs",    ms: true },
+  // { id: "ms-wacc",      label: "⚖ WACC",          ms: true },
 ];
 
 export default function App() {
