@@ -51,6 +51,7 @@ export function Investment({ investments, onScripClick }) {
             <tr>
               <th>SN</th>
               <th>SCRIP</th>
+              <th>Sector</th>
               <th>Quantity</th>
               <th>Buy Rate</th>
               <th>Bought Date</th>
@@ -62,7 +63,7 @@ export function Investment({ investments, onScripClick }) {
           <tbody>
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={8} className="td--empty">No investments yet</td>
+                <td colSpan={9} className="td--empty">No investments yet</td>
               </tr>
             )}
             {sorted.map((inv) => {
@@ -101,6 +102,7 @@ export function Investment({ investments, onScripClick }) {
                       </button>
                     ) : null}
                   </td>
+                  <td>{isNewGroup ? (inv.sector || "—") : ""}</td>
                   <td>{inv.qty}</td>
                   <td className="td--mono">₹{fmt(inv.buyRate)}</td>
                   <td className="td--mono">{inv.boughtDate}</td>

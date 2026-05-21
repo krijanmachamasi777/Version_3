@@ -43,6 +43,22 @@ export const findRecentTSN = (entries, scrip, boughtDate, maxDays = 15) => {
 export const annG         = (pl, amt, d) => (amt && d && d !== "—") ? ((pl / amt) / (d / 365) * 100).toFixed(2) : null;
 export const monG         = (pl, amt, d) => (amt && d && d !== "—") ? ((pl / amt) / (d / 30)  * 100).toFixed(2) : null;
 
+const avgByQty = (entries, fn) => {
+  const sold = entries.filter(e => e && e.soldDate && e.buyAmt && e.soldAmt && e.qty);
+  const totalQty = sold.reduce((sum, e) => sum + (Number(e.qty) || 0), 0);
+  if (!totalQty) return null;
+  const weighted = sold.reduce((sum, e) => {
+    const d = holdDays(e.boughtDate, e.soldDate);
+    if (d === "—" || d <= 0) return sum;
+    const pl = Number(e.soldAmt || 0) - Number(e.buyAmt || 0);
+    return sum + (Number(e.qty) || 0) * fn(pl, Number(e.buyAmt || 0), d);
+  }, 0);
+  return Number.isFinite(weighted) ? (weighted / totalQty).toFixed(2) : null;
+};
+
+export const groupAnnG = entries => avgByQty(entries, annG);
+export const groupMonG = entries => avgByQty(entries, monG);
+
 export const secBadge = s => {
   const m = {
     Finance: "finance", Banking: "banking", IT: "it", Hydro: "it",

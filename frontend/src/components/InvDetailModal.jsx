@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fmt, pctRet, holdDays, annG, monG } from "../utils/helpers";
+import { fmt, pctRet, holdDays, annG, monG, groupAnnG, groupMonG } from "../utils/helpers";
 import "../styles/modals.css";
 
 // ── INVEST DETAIL MODAL ───────────────────────────────────
@@ -33,6 +33,8 @@ export function InvDetailModal({ inv, onEdit, onDelete, onClose }) {
   const groupPctRet = isGroup && groupTotalBuyAmt
     ? ((groupTotalPL / groupTotalBuyAmt) * 100).toFixed(2)
     : null;
+  const groupAnn = isGroup ? groupAnnG(entries) : null;
+  const groupMon = isGroup ? groupMonG(entries) : null;
   const groupPos = groupTotalPL != null ? groupTotalPL >= 0 : null;
 
   return (
@@ -69,16 +71,23 @@ export function InvDetailModal({ inv, onEdit, onDelete, onClose }) {
                 <div className={`pl-footer__label pl-footer__label--${groupPos ? "profit" : "loss"}`}>
                   {entries.length} entries under {inv.scrip}
                 </div>
-                <div className="pl-footer__sub" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>
-                    Total Realised P&amp;L:{" "}
-                    {groupTotalPL !== 0
-                      ? `${groupPos ? "+" : "-"}₹${fmt(Math.abs(groupTotalPL))}`
-                      : "—"}
+                <div className="pl-footer__sub pl-footer__sub--metrics">
+                  <span className="pl-footer__metric">
+                    Total Realised P&amp;L: <strong>{groupTotalPL !== 0 ? `${groupPos ? "+" : "-"}₹${fmt(Math.abs(groupTotalPL))}` : "—"}</strong>
                   </span>
                   {groupPctRet && (
-                    <span style={{ marginLeft: 16, fontWeight: 600, color: "var(--acc)" }}>
-                      {groupPos ? "+" : ""}{groupPctRet}%
+                    <span className="pl-footer__metric pl-footer__metric--percent">
+                      <strong>{groupPos ? "+" : ""}{groupPctRet}%</strong>
+                    </span>
+                  )}
+                  {groupAnn && (
+                    <span className={`pl-footer__metric ${groupPos ? "v--profit" : "v--loss"}`}>
+                      <strong>Avg Annual: {groupPos ? "+" : ""}{groupAnn}%</strong>
+                    </span>
+                  )}
+                  {groupMon && (
+                    <span className={`pl-footer__metric ${groupPos ? "v--profit" : "v--loss"}`}>
+                      <strong>Avg Monthly: {groupPos ? "+" : ""}{groupMon}%</strong>
                     </span>
                   )}
                 </div>
