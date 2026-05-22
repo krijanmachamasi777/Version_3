@@ -2,35 +2,64 @@ import { fmt, holdDays } from "../utils/helpers";
 import "../styles/investment.css";
 
 // ── INVESTMENT TAB ────────────────────────────────────────
-// Props:
-//   investments  – array of investment objects
-//   onScripClick – called with { scrip, investments: [...] } or single inv
-//
-// Grouping logic:
-//   • Sort by boughtDate asc, then scrip asc
-//   • Rows with the same scrip name are grouped: one SN, one SCRIP button
-//   • Clicking the SCRIP button opens the group detail modal
-//   • No 15-day window — ALL entries with the same scrip name are one group
+// Grouping rules:
+//   • Sort all entries by boughtDate asc (primary), scrip asc (tie-break)
+//   • Group entries of the same scrip where boughtDate falls within
+//     365 days of the group's FIRST entry date → share the same SN
+//   • If the same scrip is bought again more than 365 days after the
+//     group's first entry, it opens a NEW group with a new SN
+//   • SN is sequential across all groups in display order
+//   • Only the first row of a group shows: SN, SCRIP button, Sector
 
 export function Investment({ investments, onScripClick }) {
   const holdingCount = investments.filter(i => !i.soldDate).length;
   const soldCount    = investments.filter(i => !!i.soldDate).length;
 
-  // Sort: boughtDate asc, then scrip asc
+  // ── Step 1: sort by boughtDate asc, then scrip asc ──────
   const sorted = [...investments].sort((a, b) => {
     const dc = (a.boughtDate || "").localeCompare(b.boughtDate || "");
     return dc || (a.scrip || "").localeCompare(b.scrip || "");
   });
 
-  // Assign one stable SN per unique scrip (first-seen order)
-  const scripSnMap = {};
-  let snCounter = 0;
+  // ── Step 2: assign a groupId to each entry ──────────────
+  // Key: "SCRIP__anchorDate" where anchorDate is the first boughtDate
+  // of the current open window for that scrip.
+  // A new window opens when the gap from anchorDate exceeds 365 days.
+  const anchorMap = {};   // scrip → current anchor date string
+  let snCounter   = 0;
+  const snMap     = {};   // groupKey → SN number
+  const groupKeys = [];   // parallel to sorted
+
   sorted.forEach(inv => {
-    const key = (inv.scrip || "").trim().toUpperCase();
-    if (!(key in scripSnMap)) scripSnMap[key] = ++snCounter;
+    const scrip   = (inv.scrip || "").trim().toUpperCase();
+    const dateStr = inv.boughtDate || "";
+    const anchor  = anchorMap[scrip];
+
+    let groupKey;
+    if (!anchor) {
+      // First time we see this scrip → open a new window
+      anchorMap[scrip] = dateStr;
+      groupKey = `${scrip}__${dateStr}`;
+    } else {
+      const daysDiff = Math.round(
+        (new Date(dateStr) - new Date(anchor)) / 86400000
+      );
+      if (daysDiff <= 365) {
+        // Within the 1-year window → same group
+        groupKey = `${scrip}__${anchor}`;
+      } else {
+        // Beyond 1 year → open a new window with today's entry as anchor
+        anchorMap[scrip] = dateStr;
+        groupKey = `${scrip}__${dateStr}`;
+      }
+    }
+
+    if (!(groupKey in snMap)) snMap[groupKey] = ++snCounter;
+    groupKeys.push(groupKey);
   });
 
-  let lastScrip = null;
+  // ── Step 3: render ──────────────────────────────────────
+  let prevGroupKey = null;
 
   return (
     <div className="card--np">
@@ -66,21 +95,22 @@ export function Investment({ investments, onScripClick }) {
                 <td colSpan={9} className="td--empty">No investments yet</td>
               </tr>
             )}
-            {sorted.map((inv) => {
-              const key        = (inv.scrip || "").trim().toUpperCase();
-              const isNewGroup = key !== lastScrip;
-              lastScrip        = key;
+            {sorted.map((inv, idx) => {
+              const groupKey   = groupKeys[idx];
+              const isNewGroup = groupKey !== prevGroupKey;
+              prevGroupKey     = groupKey;
 
+              // const scrip  = (inv.scrip || "").trim().toUpperCase();
               const isSold = !!inv.soldDate;
               const d      = holdDays(inv.boughtDate, inv.soldDate);
-              const sn     = scripSnMap[key];
+              const sn     = snMap[groupKey];
 
               const handleScripClick = isNewGroup
                 ? () => {
+                    // collect all entries that share this exact groupKey
                     const groupInvs = sorted.filter(
-                      i => (i.scrip || "").trim().toUpperCase() === key
+                      (_, i) => groupKeys[i] === groupKey
                     );
-                    // single entry → pass object directly; multiple → pass group
                     if (groupInvs.length === 1) {
                       onScripClick(groupInvs[0]);
                     } else {

@@ -107,14 +107,14 @@ export default function App() {
       </nav>
 
       <main className="page">
-        {tab === "dashboard"    && <Dashboard   trades={trades} />}
+        {tab === "dashboard"    && <Dashboard   trades={trades} investments={investments} />}
         {tab === "journal"      && <Journal     trades={trades} onScripClick={setTradeDetail} />}
         {tab === "investment"   && <Investment  investments={investments} onScripClick={setInvDetail} />}
         {tab === "watchlist"    && <Watchlist   watchlist={watchlist} onEdit={w => setWatchForm({ mode:"edit", data:w })} onDelete={delWatch} />}
         {tab === "losing"       && <Losing      trades={trades} onScripClick={setTradeDetail} />}
-        {/* {tab === "ms-portfolio" && <MSPortfolio />}
+        {tab === "ms-portfolio" && <MSPortfolio />}
         {tab === "ms-ipos"      && <MSIpos />}
-        {tab === "ms-wacc"      && <MSWacc />} */}
+        {tab === "ms-wacc"      && <MSWacc />}
       </main>
 
       {showFAB && (

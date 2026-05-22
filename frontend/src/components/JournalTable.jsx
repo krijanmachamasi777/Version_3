@@ -8,12 +8,14 @@ import { fmt, isClosedTrade, tradePL } from "../utils/helpers";
 
 export function JournalTable({ trades, onScripClick }) {
   let lastTSN = null;
-  let groupedTSN = null;
+  let groupSN = 0; // increments once per unique TSN group
+
   return (
     <div className="table-wrap">
       <table>
         <thead>
           <tr>
+            <th>SN</th>
             <th>TSN</th>
             <th>SCRIP</th>
             <th>Quantity</th>
@@ -27,23 +29,34 @@ export function JournalTable({ trades, onScripClick }) {
         <tbody>
           {trades.length === 0 && (
             <tr>
-              <td colSpan={8} className="td--empty">No trades found</td>
+              <td colSpan={9} className="td--empty">No trades found</td>
             </tr>
           )}
-          {trades.map((t, index) => {
-            const pl  = tradePL(t);
-            const pos = pl != null ? pl >= 0 : null;
+          {trades.map((t) => {
+            const pl       = tradePL(t);
+            const pos      = pl != null ? pl >= 0 : null;
             const showGroup = t.tsn !== lastTSN;
-            const tsn = t.tsn;
+            const tsn      = t.tsn;
+
+            if (showGroup) groupSN++;
+            const currentSN = groupSN;
+
             let onClick = null;
             if (showGroup) {
               const groupTrades = trades.filter(item => item.tsn === tsn);
               onClick = () => onScripClick({ tsn, scrip: t.scrip, trades: groupTrades });
             }
-            lastTSN = tsn;
+            lastTSN = t.tsn;
+
             return (
               <tr key={t.id}>
+                {/* SN — only on first row of each TSN group */}
+                <td className="td--mono td--muted">{showGroup ? currentSN : ""}</td>
+
+                {/* TSN */}
                 <td className="td--mono">{showGroup ? tsn : ""}</td>
+
+                {/* SCRIP — clickable button on first row of group */}
                 <td>
                   {showGroup ? (
                     <button className="scrip-btn" onClick={onClick}>
@@ -51,6 +64,8 @@ export function JournalTable({ trades, onScripClick }) {
                     </button>
                   ) : null}
                 </td>
+
+                {/* Trade row data */}
                 <td>{t.qty}</td>
                 <td className="td--mono">₹{fmt(t.buyRate)}</td>
                 <td className="td--mono">{isClosedTrade(t) ? `₹${fmt(t.sellRate)}` : "—"}</td>

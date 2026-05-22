@@ -51,7 +51,7 @@ const DP_CODE_TO_ID = {
   "22700": 2163, "11400": 196,  "17100": 197,  "13500": 200,
 };
 
-// POST /api/auth/login
+
 // POST /api/auth/login
 exports.login = async (req, res) => {
   const { dpCode, username, password } = req.body;
