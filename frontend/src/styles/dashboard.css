@@ -262,3 +262,61 @@
     max-height: none;
   }
 }
+/* ── Dashboard mode switcher ────────────────────────────── */
+.dash-switcher {
+  display: flex;
+  gap: 8px;
+  background: var(--s1);
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  padding: 6px;
+  width: fit-content;
+  margin-bottom: 4px;
+}
+
+.dash-switch-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  padding: 8px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+
+.dash-switch-btn:hover {
+  background: var(--s2);
+  color: var(--fg);
+}
+
+.dash-switch-btn--active {
+  background: rgba(10, 132, 255, 0.15);
+  border-color: rgba(10, 132, 255, 0.35);
+  color: var(--glow);
+}
+
+/* ── Empty state for charts ─────────────────────────────── */
+.chart-empty {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  border: 1px dashed var(--b);
+  border-radius: 10px;
+  padding: 24px;
+  font-style: italic;
+  opacity: 0.6;
+}
+
+/* ── Responsive tweaks ──────────────────────────────────── */
+@media (max-width: 640px) {
+  .dash-switcher { width: 100%; }
+  .dash-switch-btn { flex: 1; text-align: center; padding: 8px 10px; font-size: 12px; }
+}
