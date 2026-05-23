@@ -16,7 +16,7 @@ const connect = async () => {
     logger.info(`✅ MongoDB connected: ${mongoose.connection.host}`);
   } catch (err) {
     logger.error("❌ MongoDB connection failed:", err);
-    process.exit(1);
+    throw err;
   }
 };
 

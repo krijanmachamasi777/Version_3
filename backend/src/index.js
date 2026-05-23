@@ -7,12 +7,16 @@ const { connect, disconnect } = require("./config/database");
 const { runFullSync } = require("./services/syncService");
 const logger = require("./utils/logger");
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const SYNC_CRON = process.env.SYNC_CRON || "0 6 * * *"; // Default: 6 AM daily
 
 async function start() {
-  // 1. Connect to MongoDB
-  await connect();
+  // 1. Connect to MongoDB (non-fatal — server starts regardless)
+  try {
+    await connect();
+  } catch (err) {
+    logger.warn("⚠️  Starting server without MongoDB. Routes requiring DB will fail until reconnected.");
+  }
 
   // 2. Start Express server
   const server = app.listen(PORT, () => {
