@@ -25,9 +25,9 @@ const TABS = [
   { id: "investment",   label: "💼 Investment" },
   { id: "watchlist",    label: "👁 Watchlist" },
   { id: "losing",       label: "📉 Losing" },
-  // { id: "ms-portfolio", label: "🏦 MS Portfolio", ms: true },
-  // { id: "ms-ipos",      label: "📋 Open IPOs",    ms: true },
-  // { id: "ms-wacc",      label: "⚖ WACC",          ms: true },
+  { id: "ms-portfolio", label: "🏦 MS Portfolio", ms: true },
+  { id: "ms-ipos",      label: "📋 Open IPOs",    ms: true },
+  { id: "ms-wacc",      label: "⚖ WACC",          ms: true },
 ];
 
 export default function App() {
@@ -107,8 +107,7 @@ export default function App() {
       </nav>
 
       <main className="page">
-        {tab === "dashboard"    && <Dashboard   trades={trades} investments={investments} />}
-        {tab === "journal"      && <Journal     trades={trades} onScripClick={setTradeDetail} />}
+{tab === "dashboard" && <Dashboard trades={trades} investments={investments} />}        {tab === "journal"      && <Journal     trades={trades} onScripClick={setTradeDetail} />}
         {tab === "investment"   && <Investment  investments={investments} onScripClick={setInvDetail} />}
         {tab === "watchlist"    && <Watchlist   watchlist={watchlist} onEdit={w => setWatchForm({ mode:"edit", data:w })} onDelete={delWatch} />}
         {tab === "losing"       && <Losing      trades={trades} onScripClick={setTradeDetail} />}
