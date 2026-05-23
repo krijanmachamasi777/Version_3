@@ -69,7 +69,7 @@ export default function App() {
   const isMsTab = tab.startsWith("ms-");
   const showFAB = !isMsTab && tab !== "dashboard" && tab !== "losing";
 
-  // if (!isLoggedIn) return <LoginPage />;
+  if (!isLoggedIn) return <LoginPage />;
 
   return (
     <>
