@@ -6,8 +6,7 @@ const USER_FOLDERS = [
   'portfolioitems',
   'portfoliosummaries',
   'shares',
-  'synclogs',
-  'userprofiles',
+    'userprofiles',
   'waccs',
 ];
 
