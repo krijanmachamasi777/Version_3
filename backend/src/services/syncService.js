@@ -1,12 +1,7 @@
 // src/services/syncService.js
 
-const UserProfile = require("../models/UserProfile");
-const Share = require("../models/Share");
-const { PortfolioItem, PortfolioSummary } = require("../models/Portfolio");
-const ApplicableIssue = require("../models/ApplicableIssue");
-const Wacc = require("../models/Wacc");
-const SyncLog = require("../models/SyncLog");
-const logger = require("../utils/logger");
+const { getModel }  = require("../utils/userCollections");
+const logger        = require("../utils/logger");
 
 // ── Helper: upsert many with individual error capture ─────────────────
 async function bulkUpsert(Model, filterKeys, docs) {
@@ -15,7 +10,11 @@ async function bulkUpsert(Model, filterKeys, docs) {
     const filter = {};
     filterKeys.forEach((k) => (filter[k] = doc[k]));
     try {
-      await Model.findOneAndUpdate(filter, doc, { upsert: true, new: true, setDefaultsOnInsert: true });
+      await Model.findOneAndUpdate(filter, doc, {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      });
       count++;
     } catch (err) {
       logger.warn(`⚠️  Upsert skipped for ${JSON.stringify(filter)}: ${err.message}`);
@@ -26,12 +25,13 @@ async function bulkUpsert(Model, filterKeys, docs) {
 
 // ── Step runners ──────────────────────────────────────────────────────
 
-async function syncProfile(client) {
-  const d = await client.getOwnDetails();
+async function syncProfile(client, username) {
+  const UserProfile = getModel(username, "userprofiles"); // → "Krijan.userprofiles"
+  const d   = await client.getOwnDetails();
   const now = new Date();
 
   await UserProfile.findOneAndUpdate(
-    { username: d.username || client.clientCode },
+    { username: d.username || String(client.clientCode) },
     {
       username:        d.username || String(client.clientCode),
       name:            d.name,
@@ -52,9 +52,10 @@ async function syncProfile(client) {
   return 1;
 }
 
-async function syncShares(client) {
-  const { shares } = await client.getMyShares();
-  const now = new Date();
+async function syncShares(client, username) {
+  const Share          = getModel(username, "shares"); // → "Krijan.shares"
+  const { shares }     = await client.getMyShares();
+  const now            = new Date();
 
   const docs = shares.map((s) => ({
     boid:           client.boid,
@@ -73,7 +74,9 @@ async function syncShares(client) {
   return count;
 }
 
-async function syncPortfolio(client) {
+async function syncPortfolio(client, username) {
+  const PortfolioItem    = getModel(username, "portfolioitems");    // → "Krijan.portfolioitems"
+  const PortfolioSummary = getModel(username, "portfoliosummaries"); // → "Krijan.portfoliosummaries"
   const { summary, items } = await client.getPortfolio();
   const now = new Date();
 
@@ -99,9 +102,10 @@ async function syncPortfolio(client) {
   return count + 1;
 }
 
-async function syncApplicableIssues(client) {
-  const { issues } = await client.getApplicableIssues();
-  const now = new Date();
+async function syncApplicableIssues(client, username) {
+  const ApplicableIssue = getModel(username, "applicableissues"); // → "Krijan.applicableissues"
+  const { issues }      = await client.getApplicableIssues();
+  const now             = new Date();
 
   const docs = issues.map((iss) => ({
     companyShareId: iss.companyShareId,
@@ -121,9 +125,10 @@ async function syncApplicableIssues(client) {
   return count;
 }
 
-async function syncWacc(client, scripts = []) {
+async function syncWacc(client, username, scripts = []) {
+  const Wacc    = getModel(username, "waccs"); // → "Krijan.waccs"
   const records = await client.getWaccForAll(scripts);
-  const now = new Date();
+  const now     = new Date();
 
   const docs = records.map((r) => ({
     boid:                client.boid,
@@ -148,36 +153,39 @@ async function syncWacc(client, scripts = []) {
 // ── Main sync orchestrator ────────────────────────────────────────────
 
 async function runFullSync(credentials = null) {
-  const MeroShareClient = require("./meroshareClient"); // lazy load to avoid circular deps
+  const MeroShareClient = require("./meroshareClient");
   const startedAt = new Date();
-  const steps = [];
+  const steps     = [];
 
   logger.info("═══════════════════════════════════════════");
   logger.info("        Starting Full MeroShare Sync       ");
   logger.info("═══════════════════════════════════════════");
 
   let client;
+let username;
 
-  if (credentials?.client) {
-    // Already-authenticated client passed directly from login
-    client = credentials.client;
-    logger.info(`Syncing for user: ${credentials.username}`);
+if (credentials?.client) {
+  client   = credentials.client;
+  username = credentials.name || credentials.username;
   } else {
     if (!credentials) {
       // Cron job — no credentials, load last user from DB
-      const User = require("../models/User");
+      const User    = require("../models/User");
       const lastUser = await User.findOne().sort({ lastLoginAt: -1 }).lean();
       if (!lastUser) {
         logger.error("No user in DB. Login via the app first to enable scheduled sync.");
         return;
       }
-      credentials = {
-        clientId: lastUser.clientId,
-        username: lastUser.username,
-        password: process.env.MEROSHARE_PASSWORD,
-      };
-      logger.info(`Syncing for user: ${lastUser.username}`);
+     credentials = {
+  clientId: lastUser.clientId,
+  username: lastUser.username,
+  name:     lastUser.name,          // ← add this
+  password: process.env.MEROSHARE_PASSWORD,
+};
     }
+
+    username = credentials.username;
+    logger.info(`Syncing for user: ${username}`);
 
     // Fresh credentials — do a new login
     client = new MeroShareClient(credentials);
@@ -186,9 +194,11 @@ async function runFullSync(credentials = null) {
       await client.getOwnDetails();
     } catch (err) {
       logger.error("Fatal: login/init failed. Aborting sync.", err);
+      // Log failure into the user's own synclogs collection
+      const SyncLog = getModel(username, "synclogs");
       await SyncLog.create({
-        status: "failed",
-        steps: [{ name: "login", status: "error", error: err.message }],
+        status:     "failed",
+        steps:      [{ name: "login", status: "error", error: err.message }],
         startedAt,
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
@@ -207,10 +217,10 @@ async function runFullSync(credentials = null) {
     }
   };
 
-  await run("profile",          () => syncProfile(client));
-  await run("shares",           () => syncShares(client));
-  await run("portfolio",        () => syncPortfolio(client));
-  await run("applicableIssues", () => syncApplicableIssues(client));
+  await run("profile",          () => syncProfile(client, username));
+  await run("shares",           () => syncShares(client, username));
+  await run("portfolio",        () => syncPortfolio(client, username));
+  await run("applicableIssues", () => syncApplicableIssues(client, username));
 
   let scripts = [];
   try {
@@ -218,16 +228,18 @@ async function runFullSync(credentials = null) {
     scripts = shares.map((s) => s.script).filter(Boolean);
   } catch (_) {}
 
-  await run("wacc", () => syncWacc(client, scripts));
+  await run("wacc", () => syncWacc(client, username, scripts));
 
   const finishedAt = new Date();
   const durationMs = finishedAt - startedAt;
   const hasErrors  = steps.some((s) => s.status === "error");
   const allFailed  = steps.every((s) => s.status === "error");
 
+  // Write sync log into user's own collection → "Krijan.synclogs"
+  const SyncLog = getModel(username, "synclogs");
   await SyncLog.create({
-    boid:   client.boid,
-    status: allFailed ? "failed" : hasErrors ? "partial" : "success",
+    boid:       client.boid,
+    status:     allFailed ? "failed" : hasErrors ? "partial" : "success",
     steps,
     startedAt,
     finishedAt,

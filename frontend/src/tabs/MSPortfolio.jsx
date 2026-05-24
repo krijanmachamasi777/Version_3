@@ -80,6 +80,7 @@ export function MSPortfolio() {
                 const scrip = h.script || h.scrip || h.symbol || "—";
                 const qty   = h.currentBalance ?? h.qty ?? "—";
                 const ltp   = h.lastTransactionPrice ?? h.ltp ?? 0;
+                // eslint-disable-next-line no-constant-binary-expression
                 const val   = h.valueOfLastTransPrice ?? (Number(ltp) * Number(qty)) ?? 0;
                 const free  = h.freeBalance ?? h.availableBalance ?? "—";
                 return (

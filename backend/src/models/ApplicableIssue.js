@@ -2,7 +2,7 @@
 const mongoose = require("mongoose");
 
 const applicableIssueSchema = new mongoose.Schema(
-  {
+  { userId:        { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true }, // ← ADD
     companyShareId: { type: Number, index: true },
     scrip: { type: String, index: true },
     companyName: { type: String },
@@ -16,5 +16,5 @@ const applicableIssueSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+applicableIssueSchema.index({ userId: 1, companyShareId: 1 }, { unique: true }); // ← CHANGE
 module.exports = mongoose.model("ApplicableIssue", applicableIssueSchema);

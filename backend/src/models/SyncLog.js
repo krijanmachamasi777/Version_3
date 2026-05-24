@@ -2,7 +2,7 @@
 const mongoose = require("mongoose");
 
 const syncLogSchema = new mongoose.Schema(
-  {
+  { userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true }, // ← ADD
     boid: { type: String, index: true },
     status: {
       type: String,

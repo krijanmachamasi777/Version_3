@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 
 const portfolioItemSchema = new mongoose.Schema(
   {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true }, // ← ADD
     boid: { type: String, required: true, index: true },
     script: { type: String, required: true },
     scriptDesc: { type: String },
@@ -15,10 +16,11 @@ const portfolioItemSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-portfolioItemSchema.index({ boid: 1, script: 1 }, { unique: true });
+portfolioItemSchema.index({userId: 1, boid: 1, script: 1 }, { unique: true });
 
 const portfolioSummarySchema = new mongoose.Schema(
   {
+     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true }, // ← ADD
     boid: { type: String, required: true, unique: true, index: true },
     totalCostPrice: { type: Number, default: 0 },
     totalValueOfLastTransPrice: { type: Number, default: 0 },
@@ -26,7 +28,7 @@ const portfolioSummarySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+portfolioSummarySchema.index({ userId: 1, boid: 1 }, { unique: true }); 
 module.exports = {
   PortfolioItem: mongoose.model("PortfolioItem", portfolioItemSchema),
   PortfolioSummary: mongoose.model("PortfolioSummary", portfolioSummarySchema),

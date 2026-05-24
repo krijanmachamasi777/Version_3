@@ -2,7 +2,7 @@
 const mongoose = require("mongoose");
 
 const waccSchema = new mongoose.Schema(
-  {
+  { userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true }, // ← ADD
     boid: { type: String, required: true, index: true },
     scrip: { type: String, required: true, index: true },
     isin: { type: String },
@@ -17,7 +17,7 @@ const waccSchema = new mongoose.Schema(
 
 // One WACC entry per scrip+boid+date+source combination
 waccSchema.index(
-  { boid: 1, scrip: 1, transactionDate: 1, purchaseSource: 1 },
+  {  userId: 1, boid: 1, scrip: 1, transactionDate: 1, purchaseSource: 1 },
   { unique: true }
 );
 

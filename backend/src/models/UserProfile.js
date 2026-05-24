@@ -2,7 +2,7 @@
 const mongoose = require("mongoose");
 
 const userProfileSchema = new mongoose.Schema(
-  {
+  {userId:   { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true, index: true }, // ← ADD
     username: { type: String, required: true, unique: true, index: true },
     name: { type: String },
     boid: { type: String, index: true },       // demat number

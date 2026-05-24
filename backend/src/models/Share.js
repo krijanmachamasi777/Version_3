@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 
 const shareSchema = new mongoose.Schema(
   {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true }, // ← ADD
     boid: { type: String, required: true, index: true },
     script: { type: String, required: true, index: true },
     scriptDesc: { type: String },
@@ -17,6 +18,6 @@ const shareSchema = new mongoose.Schema(
 );
 
 // Compound unique index: one record per script per boid
-shareSchema.index({ boid: 1, script: 1 }, { unique: true });
+shareSchema.index({userId: 1, boid: 1, script: 1 }, { unique: true });
 
 module.exports = mongoose.model("Share", shareSchema);
