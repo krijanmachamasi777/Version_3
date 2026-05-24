@@ -4,4 +4,5 @@
 
 export const INIT_TRADES = [];      // Start with no trades
 export const INIT_INV    = [];      // Start with no investments
-export const INIT_WATCH  = [];      // Start with empty watchlist
+export const INIT_WATCH  = [];  
+export const dvvv=[];    // Start with empty watchlist
