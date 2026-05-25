@@ -6,9 +6,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createContext, useContext, useState, useCallback } from "react";
-import { loginApi, getMeApi }                               from "../api/auth";
+import { loginApi, getMeApi } from "../api/auth";
 import {
   getProfile, getPortfolio, getIssues, getWacc, triggerSync, getSyncLogs,
+  getJournalTrades,  // ← ADD
 } from "../api/meroshare";
 
 const AuthContext = createContext(null);
@@ -16,10 +17,10 @@ const AuthContext = createContext(null);
 const TOKEN_KEY = "kitakat_token";
 
 export function AuthProvider({ children }) {
-  const [token,   setToken]   = useState(() => sessionStorage.getItem(TOKEN_KEY) || null);
-  const [user,    setUser]    = useState(null);   // { id, name, username, email, boid }
+  const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) || null);
+  const [user, setUser] = useState(null);   // { id, name, username, email, boid }
   const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState(null);
+  const [error, setError] = useState(null);
 
   // ── login ─────────────────────────────────────────────────
   const login = useCallback(async ({ dpCode, username, password }) => {
@@ -61,12 +62,14 @@ export function AuthProvider({ children }) {
   }, [token, user, logout]);
 
   // ── Data fetchers (pass token automatically) ──────────────
-  const fetchProfile   = useCallback(()       => getProfile(token),   [token]);
-  const fetchPortfolio = useCallback(()       => getPortfolio(token), [token]);
-  const fetchIssues    = useCallback((type)   => getIssues(token, type), [token]);
-  const fetchWacc      = useCallback((script) => getWacc(token, script), [token]);
-  const fetchSyncLogs  = useCallback(()       => getSyncLogs(token),  [token]);
-  const doSync         = useCallback(()       => triggerSync(token),  [token]);
+  const fetchProfile = useCallback(() => getProfile(token), [token]);
+  const fetchPortfolio = useCallback(() => getPortfolio(token), [token]);
+  const fetchIssues = useCallback((type) => getIssues(token, type), [token]);
+  const fetchWacc = useCallback((script) => getWacc(token, script), [token]);
+  const fetchSyncLogs = useCallback(() => getSyncLogs(token), [token]);
+  const doSync = useCallback(() => triggerSync(token), [token]);
+  // Add this line alongside the other useCallback fetchers:
+const fetchJournalTrades = useCallback(() => getJournalTrades(token), [token]); // ← ADD
 
   return (
     <AuthContext.Provider
@@ -85,6 +88,7 @@ export function AuthProvider({ children }) {
         fetchWacc,
         fetchSyncLogs,
         doSync,
+        fetchJournalTrades,
       }}
     >
       {children}

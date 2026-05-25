@@ -50,7 +50,7 @@ async function ensureUserCollections(username) {
   const db = mongoose.connection.db;
 
   for (const collectionName of Object.keys(COLLECTION_SCHEMAS)) {
-    const collectionKey = `${folderName}.${collectionName}`; // e.g. "Krijan.shares"
+    const collectionKey = `${folderName}.${collectionName}`; 
     const exists = await db.listCollections({ name: collectionKey }).toArray();
     if (exists.length === 0) {
       await db.createCollection(collectionKey);
