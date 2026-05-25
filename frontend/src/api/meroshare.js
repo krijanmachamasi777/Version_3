@@ -24,3 +24,4 @@ export const getWacc      = (token, script) =>
 export const triggerSync  = (token)         =>
   apiFetch("/sync", token, { method: "POST" });
 export const getSyncLogs  = (token)         => apiFetch("/sync/logs", token);
+export const getJournalTrades = (token)         => apiFetch("/journal-trades", token); // ← ADD
