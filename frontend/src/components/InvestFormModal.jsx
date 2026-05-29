@@ -13,8 +13,8 @@ import "../styles/modals.css";
 export function InvestFormModal({ mode, init = {}, onSave, onClose }) {
   const blank = {
     scrip: "", sector: "", qty: "", buyRate: "", soldRate: "",
-    buyAmt: "", soldAmt: "", boughtDate: todayStr(),
-    soldDate: "", remarks: "",
+    buyAmt: "", soldAmt: "", ltp: "", valueAsOfLtp: "",
+    boughtDate: todayStr(), soldDate: "", remarks: "",
   };
   const [f, setF] = useState({ ...blank, ...init, soldRate: init.soldRate || "" });
 
@@ -30,6 +30,10 @@ export function InvestFormModal({ mode, init = {}, onSave, onClose }) {
         const sr = Number(k === "soldRate" ? v : p.soldRate) || 0;
         if (q && sr) n.soldAmt = q * sr;
       }
+      if (k === "qty" || k === "ltp") {
+        const ltp = Number(k === "ltp" ? v : p.ltp) || 0;
+        n.valueAsOfLtp = q * ltp;
+      }
       return n;
     });
 
@@ -40,9 +44,11 @@ export function InvestFormModal({ mode, init = {}, onSave, onClose }) {
       qty:      Number(f.qty)     || 0,
       buyRate:  Number(f.buyRate) || 0,
       soldRate: f.soldRate ? Number(f.soldRate) : null,
-      buyAmt:   Number(f.buyAmt)  || 0,
-      soldAmt:  f.soldAmt  ? Number(f.soldAmt)  : null,
-      soldDate: f.soldDate || null,
+      buyAmt:      Number(f.buyAmt)      || 0,
+      soldAmt:     f.soldAmt ? Number(f.soldAmt) : null,
+      ltp:         Number(f.ltp)         || 0,
+      valueAsOfLtp: Number(f.valueAsOfLtp) || 0,
+      soldDate:    f.soldDate || null,
     });
   };
 
@@ -89,6 +95,14 @@ export function InvestFormModal({ mode, init = {}, onSave, onClose }) {
           <FG label="Bought Amount">
             <input className="f-input" type="number" value={f.buyAmt}
               onChange={e => upd("buyAmt", e.target.value)} placeholder="auto-calculated" />
+          </FG>
+          <FG label="LTP">
+            <input className="f-input" type="number" value={f.ltp}
+              onChange={e => upd("ltp", e.target.value)} placeholder="e.g. 2680" />
+          </FG>
+          <FG label="Value as of LTP">
+            <input className="f-input" type="number" value={f.valueAsOfLtp}
+              onChange={e => upd("valueAsOfLtp", e.target.value)} placeholder="auto-calculated" />
           </FG>
           <FG label="Sold Amount">
             <input className="f-input" type="number" value={f.soldAmt}

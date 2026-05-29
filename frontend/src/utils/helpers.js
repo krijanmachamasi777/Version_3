@@ -12,6 +12,21 @@ export const uid      = () => Math.random().toString(36).slice(2, 9);
 export const todayStr = () => new Date().toISOString().slice(0, 10);
 export const diffDays = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
 export const holdDays = (a, b) => (a && (b || true)) ? diffDays(a, b || todayStr()) : "—";
+export const formatHoldingDuration = (a, b) => {
+  if (!a) return "—";
+  const start = new Date(a);
+  const end = b ? new Date(b) : new Date();
+  const totalDays = Math.max(0, Math.round((end - start) / 86400000));
+  if (!Number.isFinite(totalDays) || totalDays <= 0) return "—";
+
+  const years = Math.floor(totalDays / 365);
+  const months = Math.floor((totalDays % 365) / 30);
+  const days = totalDays - (years * 365) - (months * 30);
+
+  return [years ? `${years} yr` : null, months ? `${months} mo` : null, days ? `${days} d` : null]
+    .filter(Boolean)
+    .join(" ");
+};
 export const fmt      = n => Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 export const isClosedTrade = trade => Boolean(trade && (trade.soldDate || Number(trade.soldAmt) > 0 || Number(trade.sellRate) > 0));
 export const tradePL       = trade => isClosedTrade(trade) ? Number(trade.soldAmt || 0) - Number(trade.buyAmt || 0) : null;
@@ -26,7 +41,7 @@ export const nextTSN = trades => {
   return `TSN${String(Math.max(0, ...nums) + 1).padStart(3, "0")}`;
 };
 
-export const findRecentTSN = (entries, scrip, boughtDate, maxDays = 15) => {
+export const findRecentTSN = (entries, scrip, boughtDate, maxDays = 12) => {
   if (!scrip || !boughtDate) return null;
   const target = new Date(boughtDate);
   const normalized = scrip.trim().toUpperCase();
