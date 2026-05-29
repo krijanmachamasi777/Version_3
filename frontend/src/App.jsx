@@ -71,7 +71,7 @@ export default function App() {
     return [...trades, ...freshDbTrades];
   }, [trades, dbTrades]);
 
-  const addTrade = d => setTrades(p => { const reuseTsn = findRecentTSN(p, d.scrip, d.boughtDate, 15); return [...p, { ...d, id: uid(), tsn: reuseTsn || nextTSN(p) }]; });
+  const addTrade = d => setTrades(p => { const reuseTsn = findRecentTSN(p, d.scrip, d.boughtDate, 12); return [...p, { ...d, id: uid(), tsn: reuseTsn || nextTSN(p) }]; });
   const updTrade = (id, d) => setTrades(p => p.map(t => t.id === id ? { ...t, ...d, tsn: t.tsn } : t));
   const delTrade = id => setTrades(p => p.filter(t => t.id !== id));
   const addInv = d => setInvestments(p => [...p, { ...d, id: uid() }]);

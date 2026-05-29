@@ -1,4 +1,4 @@
-import { fmt, holdDays } from "../utils/helpers";
+import { fmt, formatHoldingDuration } from "../utils/helpers";
 import "../styles/investment.css";
 
 // ── INVESTMENT TAB ────────────────────────────────────────
@@ -86,6 +86,8 @@ export function Investment({ investments, onScripClick }) {
               <th>Bought Date</th>
               <th>Bought Amount</th>
               <th>Holding Days</th>
+              <th>LTP</th>
+              <th>Value as of LTP</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -102,7 +104,11 @@ export function Investment({ investments, onScripClick }) {
 
               // const scrip  = (inv.scrip || "").trim().toUpperCase();
               const isSold = !!inv.soldDate;
-              const d      = holdDays(inv.boughtDate, inv.soldDate);
+              const durationText = formatHoldingDuration(inv.boughtDate, inv.soldDate);
+              const ltp = Number(inv.ltp || 0) || 0;
+              const valueAsOfLtp = Number(inv.valueAsOfLtp ?? (ltp * Number(inv.qty || 0))) || 0;
+              const ltpClass = !isSold && ltp > Number(inv.buyRate || 0) ? "td--profit" : !isSold && ltp < Number(inv.buyRate || 0) ? "td--loss" : "";
+              const valueClass = !isSold && valueAsOfLtp > Number(inv.buyAmt || 0) ? "td--profit" : !isSold && valueAsOfLtp < Number(inv.buyAmt || 0) ? "td--loss" : "";
               const sn     = snMap[groupKey];
 
               const handleScripClick = isNewGroup
@@ -137,7 +143,9 @@ export function Investment({ investments, onScripClick }) {
                   <td className="td--mono">₹{fmt(inv.buyRate)}</td>
                   <td className="td--mono">{inv.boughtDate}</td>
                   <td className="td--mono">₹{fmt(inv.buyAmt)}</td>
-                  <td className="td--mono inv-days">{d}{d !== "—" ? "d" : ""}</td>
+                  <td className="td--mono inv-days">{durationText}</td>
+                  <td className={`td--mono ${ltpClass}`}>{!isSold && ltp ? `₹${fmt(ltp)}` : "—"}</td>
+                  <td className={`td--mono ${valueClass}`}>{!isSold ? `₹${fmt(valueAsOfLtp)}` : "—"}</td>
                   <td>
                     {isSold
                       ? <span className="status-badge sb--sold">✓ Sold</span>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fmt, pctRet, holdDays, annG, monG, groupAnnG, groupMonG } from "../utils/helpers";
+import { fmt, pctRet, holdDays, formatHoldingDuration, annG, monG, groupAnnG, groupMonG } from "../utils/helpers";
 import "../styles/modals.css";
 
 // ── INVEST DETAIL MODAL ───────────────────────────────────
@@ -20,6 +20,7 @@ export function InvDetailModal({ inv, onEdit, onDelete, onClose }) {
   // For single entry, derive P&L directly
   const singleIsSold = !isGroup && !!inv.soldDate;
   const singleD      = !isGroup ? holdDays(inv.boughtDate, inv.soldDate) : null;
+  const singleDuration = !isGroup ? formatHoldingDuration(inv.boughtDate, inv.soldDate) : null;
   const singlePL     = singleIsSold ? inv.soldAmt - inv.buyAmt : null;
   const singlePos    = singlePL != null ? singlePL >= 0 : null;
 
@@ -103,7 +104,7 @@ export function InvDetailModal({ inv, onEdit, onDelete, onClose }) {
               <table>
                 <thead>
                   <tr>
-                    {["Qty","Buy Rate","Bought Date","Bought Amt","Sold Rate","Sold Date","Sold Amt","Holding Days","Status"].map(h => (
+                    {["Qty","Buy Rate","Bought Date","Bought Amt","Sold Rate","Sold Date","Sold Amt","Holding Days","LTP","Value as of LTP","Status"].map(h => (
                       <th key={h}>{h}</th>
                     ))}
                   </tr>
@@ -112,6 +113,11 @@ export function InvDetailModal({ inv, onEdit, onDelete, onClose }) {
                   {entries.map(i => {
                     const isSold   = !!i.soldDate;
                     const d        = holdDays(i.boughtDate, i.soldDate);
+                    const dLabel   = formatHoldingDuration(i.boughtDate, i.soldDate);
+                    const ltp      = Number(i.ltp || 0) || 0;
+                    const valueAsOfLtp = Number(i.valueAsOfLtp ?? (ltp * Number(i.qty || 0))) || 0;
+                    const ltpClass = !isSold && ltp > Number(i.buyRate || 0) ? "td--profit" : !isSold && ltp < Number(i.buyRate || 0) ? "td--loss" : "";
+                    const valueClass = !isSold && valueAsOfLtp > Number(i.buyAmt || 0) ? "td--profit" : !isSold && valueAsOfLtp < Number(i.buyAmt || 0) ? "td--loss" : "";
                     const isActive = selected?.id === i.id;
                     return (
                       <tr
@@ -133,7 +139,9 @@ export function InvDetailModal({ inv, onEdit, onDelete, onClose }) {
                           : "td--muted"}>
                           {i.soldAmt ? `₹${fmt(i.soldAmt)}` : "—"}
                         </td>
-                        <td className="td--mono inv-days">{d}{d !== "—" ? "d" : ""}</td>
+                        <td className="td--mono inv-days">{dLabel}</td>
+                        <td className={`td--mono ${ltpClass}`}>{!isSold && ltp ? `₹${fmt(ltp)}` : "—"}</td>
+                        <td className={`td--mono ${valueClass}`}>{!isSold ? `₹${fmt(valueAsOfLtp)}` : "—"}</td>
                         <td>
                           {isSold
                             ? <span className="status-badge sb--sold">✓ Sold</span>
@@ -194,7 +202,7 @@ export function InvDetailModal({ inv, onEdit, onDelete, onClose }) {
                 <div>
                   <div style={{ fontWeight: 700, color: "var(--acc)", fontSize: 13 }}>Still Holding</div>
                   <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "var(--mono)", marginTop: 2 }}>
-                    Position open · {singleD} days held so far
+                    Position open · {singleDuration} held so far
                   </div>
                 </div>
               </div>
@@ -205,7 +213,7 @@ export function InvDetailModal({ inv, onEdit, onDelete, onClose }) {
               <table>
                 <thead>
                   <tr>
-                    {["Quantity","Buy Rate","Sold Rate","Bought Date","Sold Date","Bought Amt","Sold Amt","Holding Days"].map(h => (
+                    {["Quantity","Buy Rate","Sold Rate","Bought Date","Sold Date","Bought Amt","Sold Amt","Holding Days","LTP","Value as of LTP"].map(h => (
                       <th key={h}>{h}</th>
                     ))}
                   </tr>
@@ -225,7 +233,9 @@ export function InvDetailModal({ inv, onEdit, onDelete, onClose }) {
                       : "td--muted"}>
                       {inv.soldAmt ? `₹${fmt(inv.soldAmt)}` : "—"}
                     </td>
-                    <td className="td--mono">{singleD}{singleD !== "—" ? " days" : ""}</td>
+                    <td className="td--mono">{singleDuration}</td>
+                    <td className={`td--mono ${Number(inv.ltp || 0) > Number(inv.buyRate || 0) ? "td--profit" : Number(inv.ltp || 0) < Number(inv.buyRate || 0) ? "td--loss" : ""}`}>{Number(inv.ltp || 0) ? `₹${fmt(inv.ltp)}` : "—"}</td>
+                    <td className={`td--mono ${(Number(inv.valueAsOfLtp ?? ((inv.ltp || 0) * Number(inv.qty || 0))) || 0) > Number(inv.buyAmt || 0) ? "td--profit" : (Number(inv.valueAsOfLtp ?? ((inv.ltp || 0) * Number(inv.qty || 0))) || 0) < Number(inv.buyAmt || 0) ? "td--loss" : ""}`}>{inv.soldDate ? "—" : `₹${fmt(Number(inv.valueAsOfLtp ?? ((inv.ltp || 0) * Number(inv.qty || 0))) || 0)}`}</td>
                   </tr>
                 </tbody>
               </table>
