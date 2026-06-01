@@ -7,8 +7,8 @@ import { fmt, isClosedTrade, tradePL } from "../utils/helpers";
 //   onScripClick – called with the trade when scrip button is clicked
 
 export function JournalTable({ trades, onScripClick }) {
-  let lastTSN = null;
-  let groupSN = 0; // increments once per unique TSN group
+  let lastGroupKey = null;
+  let groupSN = 0; // increments once per unique (TSN + SCRIP) group
 
   return (
     <div className="table-wrap">
@@ -23,19 +23,27 @@ export function JournalTable({ trades, onScripClick }) {
             <th>Sell Rate</th>
             <th>Buy Amount</th>
             <th>Sold Amount</th>
+            <th>LTP</th>
+            <th>Value as of LTP</th>
             <th>P&amp;L</th>
           </tr>
         </thead>
         <tbody>
           {trades.length === 0 && (
             <tr>
-              <td colSpan={9} className="td--empty">No trades found</td>
+              <td colSpan={11} className="td--empty">No trades found</td>
             </tr>
           )}
           {trades.map((t) => {
             const pl       = tradePL(t);
             const pos      = pl != null ? pl >= 0 : null;
-            const showGroup = t.tsn !== lastTSN;
+            const isSold   = isClosedTrade(t);
+            const ltp      = Number(t.ltp || 0) || 0;
+            const valueAsOfLtp = Number(t.valueAsOfLtp ?? (ltp * Number(t.qty || 0))) || 0;
+            const ltpClass = !isSold && ltp > Number(t.buyRate || 0) ? "td--profit" : !isSold && ltp < Number(t.buyRate || 0) ? "td--loss" : "";
+            const valueClass = !isSold && valueAsOfLtp > Number(t.buyAmt || 0) ? "td--profit" : !isSold && valueAsOfLtp < Number(t.buyAmt || 0) ? "td--loss" : "";
+            const groupKey = `${(t.tsn || "").toUpperCase()}|${(t.scrip || "").toUpperCase()}`;
+            const showGroup = groupKey !== lastGroupKey;
             const tsn      = t.tsn;
 
             if (showGroup) groupSN++;
@@ -43,10 +51,10 @@ export function JournalTable({ trades, onScripClick }) {
 
             let onClick = null;
             if (showGroup) {
-              const groupTrades = trades.filter(item => item.tsn === tsn);
+              const groupTrades = trades.filter(item => `${(item.tsn || "").toUpperCase()}|${(item.scrip || "").toUpperCase()}` === groupKey);
               onClick = () => onScripClick({ tsn, scrip: t.scrip, trades: groupTrades });
             }
-            lastTSN = t.tsn;
+            lastGroupKey = groupKey;
 
             return (
               <tr key={t.id}>
@@ -71,6 +79,8 @@ export function JournalTable({ trades, onScripClick }) {
                 <td className="td--mono">{isClosedTrade(t) ? `₹${fmt(t.sellRate)}` : "—"}</td>
                 <td className="td--mono">₹{fmt(t.buyAmt)}</td>
                 <td className="td--mono">{isClosedTrade(t) ? `₹${fmt(t.soldAmt)}` : "—"}</td>
+                <td className={`td--mono ${ltpClass}`}>{!isSold && ltp ? `₹${fmt(ltp)}` : ""}</td>
+                <td className={`td--mono ${valueClass}`}>{!isSold ? `₹${fmt(valueAsOfLtp)}` : ""}</td>
                 <td className={pl != null ? (pos ? "td--profit" : "td--loss") : "td--empty"}>
                   {pl != null ? `${pos ? "+" : "-"}₹${fmt(Math.abs(pl))}` : "—"}
                 </td>

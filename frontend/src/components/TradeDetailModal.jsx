@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { fmt, pctRet, holdDays, tradePL } from "../utils/helpers";
+import { fmt, pctRet, holdDays, formatHoldingDuration, tradePL } from "../utils/helpers";
 import "../styles/modals.css";
 
 // -- TRADE DETAIL MODAL ------------------------------------------------
@@ -20,6 +20,7 @@ export function TradeDetailModal({ trade, onEdit, onDelete, onClose }) {
   const pos = totalPL >= 0;
   const firstTrade = trades[0] || {};
   const hd = !isGroup ? holdDays(firstTrade.boughtDate, firstTrade.soldDate) : null;
+  const hdLabel = !isGroup ? formatHoldingDuration(firstTrade.boughtDate, firstTrade.soldDate) : null;
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -58,7 +59,7 @@ export function TradeDetailModal({ trade, onEdit, onDelete, onClose }) {
               <table>
                 <thead>
                   <tr>
-                    {['Quantity','Bought Date','Sold Date','R-R','Remarks','Holding Days','P&L'].map(h => (
+                    {['Quantity','Bought Date','Sold Date','R-R','Remarks','Holding Days','LTP','Value as of LTP','P&L'].map(h => (
                       <th key={h}>{h}</th>
                     ))}
                   </tr>
@@ -68,6 +69,12 @@ export function TradeDetailModal({ trade, onEdit, onDelete, onClose }) {
                     const plRow = tradePL(t);
                     const posRow = plRow != null ? plRow >= 0 : null;
                     const hdRow = holdDays(t.boughtDate, t.soldDate);
+                    const hdLabel = formatHoldingDuration(t.boughtDate, t.soldDate);
+                    const isSoldRow = Boolean(t.soldDate || Number(t.sellRate) > 0 || Number(t.soldAmt) > 0);
+                    const ltpRow = Number(t.ltp || 0) || 0;
+                    const valueRow = Number(t.valueAsOfLtp ?? (ltpRow * Number(t.qty || 0))) || 0;
+                    const ltpClass = !isSoldRow && ltpRow > Number(t.buyRate || 0) ? "td--profit" : !isSoldRow && ltpRow < Number(t.buyRate || 0) ? "td--loss" : "";
+                    const valueClass = !isSoldRow && valueRow > Number(t.buyAmt || 0) ? "td--profit" : !isSoldRow && valueRow < Number(t.buyAmt || 0) ? "td--loss" : "";
                     const selected = selectedTrade?.id === t.id;
                     return (
                       <tr
@@ -81,7 +88,9 @@ export function TradeDetailModal({ trade, onEdit, onDelete, onClose }) {
                         <td className="td--mono">{t.soldDate || "—"}</td>
                         <td><span className="rr-badge">{t.rr || "—"}</span></td>
                         <td className="td--subtle">{t.remarks || "—"}</td>
-                        <td className="td--mono">{hdRow}{hdRow !== "—" ? " days" : ""}</td>
+                        <td className="td--mono">{hdLabel}</td>
+                        <td className={`td--mono ${ltpClass}`}>{!isSoldRow && ltpRow ? `₹${fmt(ltpRow)}` : "—"}</td>
+                        <td className={`td--mono ${valueClass}`}>{!isSoldRow ? `₹${fmt(valueRow)}` : "—"}</td>
                         <td className={plRow != null ? (posRow ? "td--profit" : "td--loss") : "td--empty"}>
                           {plRow != null ? `${posRow ? "+" : "-"}₹${fmt(Math.abs(plRow))}` : "—"}
                         </td>
@@ -97,7 +106,7 @@ export function TradeDetailModal({ trade, onEdit, onDelete, onClose }) {
             <table>
               <thead>
                 <tr>
-                  {['Quantity','Bought Date','Sold Date','R-R','Remarks','Holding Days','P&L'].map(h => (
+                  {['Quantity','Bought Date','Sold Date','R-R','Remarks','Holding Days','LTP','Value as of LTP','P&L'].map(h => (
                     <th key={h}>{h}</th>
                   ))}
                 </tr>
@@ -109,7 +118,9 @@ export function TradeDetailModal({ trade, onEdit, onDelete, onClose }) {
                   <td className="td--mono">{firstTrade.soldDate || "—"}</td>
                   <td><span className="rr-badge">{firstTrade.rr || "—"}</span></td>
                   <td className="td--subtle">{firstTrade.remarks || "—"}</td>
-                  <td className="td--mono">{hd}{hd !== "—" ? " days" : ""}</td>
+                  <td className="td--mono">{hdLabel}</td>
+                  <td className={`td--mono ${Number(firstTrade.ltp || 0) > Number(firstTrade.buyRate || 0) ? "td--profit" : Number(firstTrade.ltp || 0) < Number(firstTrade.buyRate || 0) ? "td--loss" : ""}`}>{Number(firstTrade.ltp || 0) ? `₹${fmt(firstTrade.ltp)}` : "—"}</td>
+                  <td className={`td--mono ${(Number(firstTrade.valueAsOfLtp ?? ((firstTrade.ltp || 0) * Number(firstTrade.qty || 0))) || 0) > Number(firstTrade.buyAmt || 0) ? "td--profit" : (Number(firstTrade.valueAsOfLtp ?? ((firstTrade.ltp || 0) * Number(firstTrade.qty || 0))) || 0) < Number(firstTrade.buyAmt || 0) ? "td--loss" : ""}`}>{(firstTrade.soldDate || Number(firstTrade.sellRate) > 0) ? "—" : `₹${fmt(Number(firstTrade.valueAsOfLtp ?? ((firstTrade.ltp || 0) * Number(firstTrade.qty || 0))) || 0)}`}</td>
                   <td className={totalPL != null ? (pos ? "td--profit" : "td--loss") : "td--empty"}>
                     {totalPL != null ? `${pos ? "+" : "-"}₹${fmt(Math.abs(totalPL))}` : "—"}
                   </td>
